@@ -6,6 +6,10 @@
   "keywords": "",
   "license": "",
   "author": "",
+  "engines": {
+    "npm": "6.13.7",
+    "node": "10.16.2"
+  },
   "scripts": {
     "build": "parcel build index.html",
     "dev": "parcel index.html --open",
