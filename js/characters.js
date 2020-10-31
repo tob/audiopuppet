@@ -56,20 +56,20 @@ const hair = ({ctx, dataArray, size, x, y}) => {
 
   const  bufferLength = dataArray.length;
   const sliceWidth = size / bufferLength;
-  let wavex = x + sliceWidth;
+  let wavex = x;
 
   for(let i = 0; i < bufferLength; i++) {
     let v = dataArray[i] * size;
-    let wavey = i % 2 === 0 ? y - v : y - v + v/2;
+    let wavey =  y - v;
 
+    // ctx.bezierCurveTo(wavex, wavey - v/2, wavex + sliceWidth/2, wavey + v/2, wavex, wavey )
     // ctx.lineTo(wavex, wavey);
-    ctx.quadraticCurveTo(wavex-sliceWidth/2, wavey,  wavex, y);
+    ctx.quadraticCurveTo(wavex, y - v/2,  wavex, wavey);
     wavex += sliceWidth;
   }
 
   ctx.lineTo(x + size, y);
-  ctx.lineTo(x + size, y + dataArray[3] * size/4);
-  ctx.quadraticCurveTo(x + size/2, y + dataArray[3] * size/2,  x, y + dataArray[3] * size/4 );
+  // ctx.quadraticCurveTo(x + size/2, y + dataArray[bufferLength -1] * size/2,  x, y + dataArray[bufferLength -1] * size/bufferLength );
   ctx.lineTo(x, y);
 
   ctx.closePath();
@@ -83,19 +83,22 @@ const hair = ({ctx, dataArray, size, x, y}) => {
 
 export const john =({x, y, ctx, volumes, size, pattern}) => {
 
-    cheek({ctx: ctx, volume: size + volumes[0] * size/2, width: size/2, x: x - size/4 , y: y, color: 'purple'})
-    //background and face
-    cheek({ctx: ctx, volume: size/2 + volumes[0] * size/2, width: size, x: x - size/2 , y: y - size/2, color: pattern})
-    eye({ctx: ctx, crownVolume: volumes[0], pupilVolume: volumes[1], size: size/2, x: x - size/4, y: y-size/4, pattern})
-    eye({ctx: ctx, crownVolume: volumes[3], pupilVolume: volumes[4], size: size/2, x: x + size/4, y: y - size/4, pattern})
-    mouth({ctx, size: size/4, volume: volumes[1], y: y, x: x})
-    hair({ctx, dataArray:volumes, size, x: x - size/2, y: y - size/2})
+  //body
+  cheek({ctx: ctx, volume: size + volumes[0] * size/2, width: size/2, x: x - size/4 , y: y, color: 'purple'})
 
   //arms
-    ctx.fillStyle = 'brown';
-    ctx.fillRect(x - size/3 , y + size/4, size/10, size * volumes[0] + size/2)
-    ctx.fillRect(x+ size/4, y + size/4, size/10, size * volumes[0] + size/2)
-    ctx.fill
+  ctx.fillStyle = 'brown';
+  ctx.fillRect(x - size/3 , y + size/4, size/10, size * volumes[0] + size/2)
+  ctx.fillRect(x+ size/4, y + size/4, size/10, size * volumes[0] + size/2)
+  ctx.fill
+
+
+  //background and face
+  hair({ctx, dataArray:volumes, size, x: x - size/2, y: y - size/2})
+  cheek({ctx: ctx, volume: size/2 + volumes[0] * size/2, width: size, x: x - size/2 , y: y - size/2, color: pattern})
+  eye({ctx: ctx, crownVolume: volumes[0], pupilVolume: volumes[1], size: size/2, x: x - size/4, y: y-size/4, pattern})
+  eye({ctx: ctx, crownVolume: volumes[3], pupilVolume: volumes[4], size: size/2, x: x + size/4, y: y - size/4, pattern})
+  mouth({ctx, size: size/4, volume: volumes[1], y: y, x: x})
 
   // shoes
   ctx.fillStyle = 'black';
