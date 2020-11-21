@@ -1,3 +1,5 @@
+import { io } from 'socket.io-client';
+
 import {john} from "./characters";
 
 const HEIGHT = window.innerHeight;
@@ -72,7 +74,13 @@ function startAudioVisual() {
   canvas.width = WIDTH;
 
   const soundAllowed = function(stream) {
+    let store = {}
 
+    // load connected characters
+    const socket = io();
+    socket.on("currentPlayers", (players) => {
+      store.players = players;
+    });
     window.persistAudioStream = stream;
     const audioContent = new AudioContext();
     const audioStream = audioContent.createMediaStreamSource(stream);
@@ -89,7 +97,6 @@ function startAudioVisual() {
 
     const canvasCtx = canvas.getContext("2d");
     const pattern = BACKCOLOR;
-    let store = {}
 
     const draw = function(state) {
 
@@ -106,20 +113,32 @@ function startAudioVisual() {
       analyser.getByteFrequencyData(sopranoFreq);
 
       store = {
-          ...state,
-          volumes: [average(lowBassFreq),average(bassFreq),average(tenorFreq),average(altoFreq),average(sopranoFreq)],
+        ...store,
+        volumes: [average(lowBassFreq),average(bassFreq),average(tenorFreq),average(altoFreq),average(sopranoFreq)],
         size: size > 0 ? size : 10,
       }
 
 
+      canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+      // canvasCtx.fillStyle = pattern;
+      // canvasCtx.fillRect(0,0, WIDTH, HEIGHT);
+      canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+      // oscillator({ctx: canvasCtx, canvas, dataArray})
 
-        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-        // canvasCtx.fillStyle = pattern;
-        // canvasCtx.fillRect(0,0, WIDTH, HEIGHT);
-        canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-         // oscillator({ctx: canvasCtx, canvas, dataArray})
+      store.players && store.players.length <= 1 && Object.keys(store.players).forEach((id) => {
+        if (store.players[id].playerId === socket.id) {
+          console.log('who?', store.players[id].playerId)
+          store.players[id].x = deltaX;
+          store.players[id].y = deltaY;
+          john({x: store.players[id].x, y: store.players[id].y, ctx: canvasCtx, volumes: store.volumes, size: store.size, pattern})
+          // john({x: store.players[id].x, y: store.players[id].y, ctx: canvasCtx, volumes: store.volumes, size: store.size, pattern})
+        } else {
+          console.log('Other John')
+          john({x: store.players[id].x, y: store.players[id].y, ctx: canvasCtx, volumes: store.volumes, size: store.size, pattern})
+        }
+      });
 
-        john({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, pattern})
+
 
         requestAnimationFrame(draw);
 
