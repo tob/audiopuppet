@@ -82,7 +82,9 @@ const hair = ({ctx, dataArray, size, x, y}) => {
 
 
 export const john =({x, y, ctx, volumes, size, pattern}) => {
-
+  volumes.forEach((volume, i) => {
+    volumes[i] = volume >= 0 ? volume : 0
+  })
   //body
   cheek({ctx: ctx, volume: size + volumes[0] * size/2, width: size/2, x: x - size/4 , y: y, color: 'purple'})
 

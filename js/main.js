@@ -1,3 +1,5 @@
+import { io } from 'socket.io-client';
+
 import {john} from "./characters";
 
 const HEIGHT = window.innerHeight;
@@ -72,6 +74,28 @@ function startAudioVisual() {
   canvas.width = WIDTH;
 
   const soundAllowed = function(stream) {
+    let store = {}
+
+    // load connected characters
+    const socket = io();
+    socket.on("currentPlayers", (players) => {
+      store.players = {...players};
+      console.log('connected', store.players)
+    });
+
+    socket.on("newPlayer", (playerInfo) => {
+      store.players[playerInfo.playerId] = playerInfo;
+      console.log('new user joined: ' + playerInfo.playerId)
+    });
+
+    socket.on("kill", (playerId) => {
+      delete store.players[playerId]
+      console.log(playerId + ' left')
+    });
+
+    socket.on('playerMoved',  (playerInfo) => {
+      store.players[playerInfo.playerId] = playerInfo
+    });
 
     window.persistAudioStream = stream;
     const audioContent = new AudioContext();
@@ -89,7 +113,6 @@ function startAudioVisual() {
 
     const canvasCtx = canvas.getContext("2d");
     const pattern = BACKCOLOR;
-    let store = {}
 
     const draw = function(state) {
 
@@ -106,20 +129,37 @@ function startAudioVisual() {
       analyser.getByteFrequencyData(sopranoFreq);
 
       store = {
-          ...state,
-          volumes: [average(lowBassFreq),average(bassFreq),average(tenorFreq),average(altoFreq),average(sopranoFreq)],
+        ...store,
+        volumes: [average(lowBassFreq),average(bassFreq),average(tenorFreq),average(altoFreq),average(sopranoFreq)],
         size: size > 0 ? size : 10,
       }
 
 
+      canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+      // canvasCtx.fillStyle = pattern;
+      // canvasCtx.fillRect(0,0, WIDTH, HEIGHT);
+      canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+      // oscillator({ctx: canvasCtx, canvas, dataArray})
 
-        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-        // canvasCtx.fillStyle = pattern;
-        // canvasCtx.fillRect(0,0, WIDTH, HEIGHT);
-        canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-         // oscillator({ctx: canvasCtx, canvas, dataArray})
+      if (!!store.players && Object.keys(store.players).length >= 1) {
+        Object.keys(store.players).forEach((id) => {
+          if (store.players[id].playerId === socket.id) {
+            john({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, pattern})
 
-        john({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, pattern})
+            socket.emit("playerMovement", {
+              x: deltaX,
+              y: deltaY,
+              volumes: store.volumes,
+              size: store.size,
+            });
+          } else {
+            john({x: store.players[id].x, y: store.players[id].y, ctx: canvasCtx, volumes: store.players[id].volumes || [0,0,0,0,0], size: store.players[id].size, pattern: 'yellow'})
+          }
+        });
+      }
+
+
+
 
         requestAnimationFrame(draw);
 
