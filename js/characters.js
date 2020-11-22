@@ -1,19 +1,19 @@
 
-const mouth = ({ctx, volume, size, x, y}) => {
-  ctx.fillStyle = 'black'
+const mouth = ({ctx, volume, size, x, y, speaking}) => {
+    ctx.fillStyle = 'black'
 
-  if (volume <= 0.4) {
   ctx.beginPath();
-  ctx.fillStyle = 'black';
-  ctx.ellipse(x, y, size - size*volume , size * volume, 0, 0, 2 * Math.PI);
-  ctx.closePath();
-  } else {
-    ctx.beginPath();
-    ctx.arc(x,y, volume * size, 0, 2 * Math.PI)
-    ctx.closePath();
-  }
+  if (!speaking){
+    ctx.ellipse(x, y, size - size*volume , 1, 0, 0, 2 * Math.PI);
+  }else if (volume <= 0.4) {
+      ctx.fillStyle = 'black';
+      ctx.ellipse(x, y, size - size*volume , size * volume, 0, 0, 2 * Math.PI);
+    } else {
+      ctx.arc(x,y, volume * size, 0, 2 * Math.PI)
 
-  ctx.fill();
+    }
+  ctx.closePath();
+    ctx.fill();
 }
 
 const cheek = ({ctx, volume, width, x, y, color}) => {
@@ -81,7 +81,7 @@ const hair = ({ctx, dataArray, size, x, y}) => {
 }
 
 
-export const john =({x, y, ctx, volumes, size, pattern}) => {
+export const john =({x, y, ctx, volumes, size, speaking, pattern}) => {
   volumes.forEach((volume, i) => {
     volumes[i] = volume >= 0 ? volume : 0
   })
@@ -100,7 +100,7 @@ export const john =({x, y, ctx, volumes, size, pattern}) => {
   cheek({ctx: ctx, volume: size/2 + volumes[0] * size/2, width: size, x: x - size/2 , y: y - size/2, color: pattern})
   eye({ctx: ctx, crownVolume: volumes[0], pupilVolume: volumes[1], size: size/2, x: x - size/4, y: y-size/4, pattern})
   eye({ctx: ctx, crownVolume: volumes[3], pupilVolume: volumes[4], size: size/2, x: x + size/4, y: y - size/4, pattern})
-  mouth({ctx, size: size/4, volume: volumes[1], y: y, x: x})
+  mouth({ctx, size: size/4, volume: volumes[1], y: y, x: x, speaking: speaking},)
 
   // shoes
   ctx.fillStyle = 'black';

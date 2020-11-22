@@ -8,7 +8,8 @@ let BACKCOLOR = 'pink'; //'rgb(100, 200, 200)'
 let listening = false;
 let deltaX = WIDTH/2;
 let deltaY = HEIGHT/2;
-let size = 100
+let size = 100;
+let speaking = false;
 const speed = WIDTH/60
 window.addEventListener("keydown", keysPressed, false);
 window.addEventListener("keyup", keysReleased, false);
@@ -49,7 +50,11 @@ function keysPressed(e) {
     size += speed;
   }
 
-  if (keys[37] || keys[38] || keys[39] || keys[40])
+  if (keys[83]) {
+    speaking = !speaking;
+  }
+
+  if (keys[37] || keys[38] || keys[39] || keys[40] || keys[83])
   e.preventDefault();
 }
 
@@ -144,7 +149,7 @@ function startAudioVisual() {
       if (!!store.players && Object.keys(store.players).length >= 1) {
         Object.keys(store.players).forEach((id) => {
           if (store.players[id].playerId === socket.id) {
-            john({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, pattern})
+            john({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, speaking, pattern})
 
             socket.emit("playerMovement", {
               x: deltaX,
