@@ -39,6 +39,7 @@ io.on('connection', function (socket) {
     players[socket.id].volumes = movementData.volumes;
     players[socket.id].size = movementData.size;
     players[socket.id].speaking = movementData.speaking;
+    players[socket.id].puppet = movementData.puppet;
     // emit a message to all players about the player that moved
     socket.broadcast.emit('playerMoved', players[socket.id]);
   });

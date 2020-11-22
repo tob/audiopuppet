@@ -182,3 +182,11 @@ export const paul =({x, y, ctx, volumes, size, speaking, pattern}) => {
   ctx.fillRect(x - size/100, y + size + volumes[0] * size/2, -(size * volumes[0] + size/4), size/10)
   ctx.fill
 }
+
+export const drawPlayer =(props) => {
+if (props.puppet === 'john') {
+  john(props)
+} else if (props.puppet === 'paul') {
+  paul(props)
+}
+}

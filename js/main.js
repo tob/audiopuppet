@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-import {john, paul} from "./characters";
+import {drawPlayer, john, paul} from "./characters";
 
 import CanvasRecorder  from "./utils/Recorder"
 
@@ -79,7 +79,9 @@ function startAudioVisual() {
   canvas.height = HEIGHT;
   canvas.width = WIDTH;
 
-  let store = {}
+  let store = {
+    puppet: 'john'
+  }
 
   // load connected characters
   const socket = io();
@@ -112,6 +114,15 @@ function startAudioVisual() {
     recordButton.addEventListener("click", () =>
       handleRecording(recordButton, recorder)
     );
+
+    const selectPuppet = document.getElementById(
+      "puppets"
+    );
+
+    selectPuppet.addEventListener('change', () => {
+      store.puppet = selectPuppet.value;
+      console.log('puppet', store.puppet, store)
+    });
 
 
     window.persistAudioStream = stream;
@@ -162,17 +173,18 @@ function startAudioVisual() {
       if (!!store.players && Object.keys(store.players).length >= 1) {
         Object.keys(store.players).forEach((id) => {
           if (store.players[id].playerId === socket.id) {
-            paul({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, speaking, pattern: 'pink'})
-
+            drawPlayer({puppet: store.puppet, x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, speaking, pattern: 'pink'})
             socket.emit("playerMovement", {
               x: deltaX,
               y: deltaY,
               volumes: store.volumes,
               size: store.size,
-              speaking: speaking
+              speaking: speaking,
+              puppet: store.puppet,
             });
           } else {
-            john({x: store.players[id].x, y: store.players[id].y, ctx: canvasCtx, volumes: store.players[id].volumes || [0,0,0,0,0], speaking: store.players[id].speaking, size: store.players[id].size, pattern: 'pink'})
+            let otherPlayer = store.players[id]
+            drawPlayer({puppet: otherPlayer.puppet, x: otherPlayer.x, y: otherPlayer.y, ctx: canvasCtx, volumes: otherPlayer.volumes || [0,0,0,0,0], speaking: otherPlayer.speaking, size: otherPlayer.size, pattern: 'pink'})
           }
         });
       }
@@ -262,6 +274,7 @@ window.onload = () => {
   const selectBackground = document.getElementById(
     "backgrounds"
   );
+
   const backgroundImage = document.getElementById('background')
 
   const canvas = document.getElementById('canvas-1')
