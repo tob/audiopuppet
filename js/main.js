@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-import {john} from "./characters";
+import {john, paul} from "./characters";
 
 const HEIGHT = window.innerHeight;
 const WIDTH = window.innerWidth;
@@ -149,7 +149,7 @@ function startAudioVisual() {
       if (!!store.players && Object.keys(store.players).length >= 1) {
         Object.keys(store.players).forEach((id) => {
           if (store.players[id].playerId === socket.id) {
-            john({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, speaking, pattern})
+            paul({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, speaking, pattern})
 
             socket.emit("playerMovement", {
               x: deltaX,
