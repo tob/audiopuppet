@@ -156,9 +156,10 @@ function startAudioVisual() {
               y: deltaY,
               volumes: store.volumes,
               size: store.size,
+              speaking: speaking
             });
           } else {
-            john({x: store.players[id].x, y: store.players[id].y, ctx: canvasCtx, volumes: store.players[id].volumes || [0,0,0,0,0], size: store.players[id].size, pattern: 'yellow'})
+            john({x: store.players[id].x, y: store.players[id].y, ctx: canvasCtx, volumes: store.players[id].volumes || [0,0,0,0,0], speaking: store.players[id].speaking, size: store.players[id].size, pattern: 'yellow'})
           }
         });
       }
