@@ -82,17 +82,17 @@ const hair = ({ctx, dataArray, size, x, y}) => {
 }
 
 
-export const john =({x, y, ctx, volumes, size, speaking, pattern}) => {
+export const john =({x, y, ctx, volumes, size, speaking, pattern, skin}) => {
   volumes.forEach((volume, i) => {
     volumes[i] = volume >= 0 ? volume : 0
   })
   //body
-  cheek({ctx: ctx, volume: size + volumes[0] * size/2, width: size/2, x: x - size/4 , y: y, color: 'black'})
+  cheek({ctx: ctx, volume: size + volumes[0] * size/2, width: size/2, x: x - size/4 , y: y, color: pattern})
   cheek({ctx: ctx, volume:  size/10 + volumes[0] * size/2, width: volumes[0] * size/10 + size/10, x: x - (volumes[0] * size/10 + size/10)/2 , y: y + 2, color: 'white'})
 
 
   //arms
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = pattern;
   ctx.fillRect(x - size/3 , y + size/4, size/10, size * volumes[0] + size/2)
   ctx.fillRect(x+ size/4, y + size/4, size/10, size * volumes[0] + size/2)
   ctx.fill
@@ -100,13 +100,13 @@ export const john =({x, y, ctx, volumes, size, speaking, pattern}) => {
 
   //background and face
   hair({ctx, dataArray:volumes, size, x: x - size/2, y: y - size/2})
-  cheek({ctx: ctx, volume: size/2 + volumes[0] * size/2, width: size, x: x - size/2 , y: y - size/2, color: pattern})
-  eye({ctx: ctx, crownVolume: volumes[0], pupilVolume: volumes[1], size: size/2, x: x - size/4, y: y-size/4, pattern})
-  eye({ctx: ctx, crownVolume: volumes[3], pupilVolume: volumes[4], size: size/2, x: x + size/4, y: y - size/4, pattern})
+  cheek({ctx: ctx, volume: size/2 + volumes[0] * size/2, width: size, x: x - size/2 , y: y - size/2, color: skin})
+  eye({ctx: ctx, crownVolume: volumes[0], pupilVolume: volumes[1], size: size/2, x: x - size/4, y: y-size/4, pattern: skin})
+  eye({ctx: ctx, crownVolume: volumes[3], pupilVolume: volumes[4], size: size/2, x: x + size/4, y: y - size/4, pattern: skin})
   mouth({ctx, size: size/4, volume: volumes[1], y: y, x: x, speaking: speaking},)
 
   // shoes
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = 'brown';
   ctx.fillRect(x + size/100  , y + size + volumes[0] * size/2, size * volumes[0] + size/4, size/10 )
   ctx.fillRect(x - size/100, y + size + volumes[0] * size/2, -(size * volumes[0] + size/4), size/10)
   ctx.fill
@@ -142,17 +142,28 @@ export const joahnna =({x, y, ctx, volumes, size, speaking, pattern}) => {
   ctx.fill
 }
 
-export const paul =({x, y, ctx, volumes, size, speaking, pattern}) => {
+export const orange =({x, y, ctx, volumes, size, speaking, pattern, skin}) => {
+  volumes.forEach((volume, i) => {
+    volumes[i] = volume >= 0 ? volume : 0
+  })
+
+  mouth({ctx, size: size/4, volume: volumes[1], y: y, x: x, speaking: speaking},)
+
+
+
+}
+
+export const paul =({x, y, ctx, volumes, size, speaking, pattern, skin}) => {
   volumes.forEach((volume, i) => {
     volumes[i] = volume >= 0 ? volume : 0
   })
   //body
-  cheek({ctx: ctx, volume: size + volumes[0] * size/2, width: size/2, x: x - size/4 , y: y, color: 'black'})
+  cheek({ctx: ctx, volume: size + volumes[0] * size/2, width: size/2, x: x - size/4 , y: y, color: pattern})
   cheek({ctx: ctx, volume:  size/5 + volumes[0] * size/2, width: volumes[0] * size/10 + size/10, x: x - (volumes[0] * size/10 + size/10)/2 , y: y + 2, color: 'white'})
 
 
   //arms
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = pattern;
   ctx.fillRect(x - size/3 , y + size/4, size/10, size * volumes[0] + size/2)
   ctx.fillRect(x+ size/4, y + size/4, size/10, size * volumes[0] + size/2)
   ctx.fill()
@@ -164,29 +175,32 @@ export const paul =({x, y, ctx, volumes, size, speaking, pattern}) => {
 
 
   ctx.beginPath();
-  ctx.fillStyle = 'pink';
+  ctx.fillStyle = skin;
   // ctx.fillRect(x - size/2, y -size/2 - size/2 * volumes[0], size, size/2 * volumes[0] + size/4)
   ctx.roundRect(x - size/2, topHead, size, size/4 * volumes[0] + size/4, 600)
   ctx.arc(x, y - size/4, size/2, 0, 1 * Math.PI)
   ctx.fill();
   ctx.closePath();
 
-  eye({ctx: ctx, crownVolume: volumes[0], pupilVolume: volumes[1], size: size/2, x: x - size/4, y: y-size/4, pattern})
-  eye({ctx: ctx, crownVolume: volumes[3], pupilVolume: volumes[4], size: size/2, x: x + size/4, y: y - size/4, pattern})
+  eye({ctx: ctx, crownVolume: volumes[0], pupilVolume: volumes[1], size: size/2, x: x - size/4, y: y-size/4, pattern: skin})
+  eye({ctx: ctx, crownVolume: volumes[3], pupilVolume: volumes[4], size: size/2, x: x + size/4, y: y - size/4, pattern: skin})
   mouth({ctx, size: size/4, volume: volumes[1], y: y, x: x, speaking: speaking},)
   hair({ctx, dataArray:volumes, size, x: x - size/2, y: topHead})
 
   // shoes
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = pattern;
   ctx.fillRect(x + size/100  , y + size + volumes[0] * size/2, size * volumes[0] + size/4, size/10 )
   ctx.fillRect(x - size/100, y + size + volumes[0] * size/2, -(size * volumes[0] + size/4), size/10)
   ctx.fill
 }
 
 export const drawPlayer =(props) => {
-if (props.puppet === 'john') {
+  // const {x, y, ctx, volumes, size, speaking, pattern, skin} = props
+
+  if (props.puppet === 'john') {
   john(props)
 } else if (props.puppet === 'paul') {
   paul(props)
+
 }
 }

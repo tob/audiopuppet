@@ -12,6 +12,8 @@ let deltaX = WIDTH/2;
 let deltaY = HEIGHT/2;
 let size = 100;
 let speaking = false;
+let bodyColor = 'black';
+let skinColor = 'orange';
 const speed = WIDTH/60
 window.addEventListener("keydown", keysPressed, false);
 window.addEventListener("keyup", keysReleased, false);
@@ -138,9 +140,7 @@ function startAudioVisual() {
     const tenorFreq = unitArray.filter((freq, index) => index < unitArray.length/3)
     const altoFreq = unitArray.filter((freq, index) => index < unitArray.length/2)
     const sopranoFreq = unitArray.filter((freq, index) => index < unitArray.length)
-
     const canvasCtx = canvas.getContext("2d");
-    const pattern = BACKCOLOR;
 
     const draw = function(state) {
 
@@ -160,20 +160,20 @@ function startAudioVisual() {
         ...store,
         volumes: [average(lowBassFreq),average(bassFreq),average(tenorFreq),average(altoFreq),average(sopranoFreq)],
         size: size > 0 ? size : 10,
-        background: 'green'
+        background: BACKCOLOR
       }
 
 
       canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-      canvasCtx.fillStyle = pattern;
-      canvasCtx.fillRect(0,0, WIDTH, HEIGHT);
+      // canvasCtx.fillStyle = BACKCOLOR;
+      // canvasCtx.fillRect(0,0, WIDTH, HEIGHT);
       canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
       // oscillator({ctx: canvasCtx, canvas, dataArray})
 
       if (!!store.players && Object.keys(store.players).length >= 1) {
         Object.keys(store.players).forEach((id) => {
           if (store.players[id].playerId === socket.id) {
-            drawPlayer({puppet: store.puppet, x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, speaking, pattern: 'pink'})
+            drawPlayer({puppet: store.puppet, x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, speaking, pattern: bodyColor, skin: skinColor})
             socket.emit("playerMovement", {
               x: deltaX,
               y: deltaY,
@@ -181,10 +181,12 @@ function startAudioVisual() {
               size: store.size,
               speaking: speaking,
               puppet: store.puppet,
+              bodyColor: bodyColor,
+              skinColor: skinColor
             });
           } else {
             let otherPlayer = store.players[id]
-            drawPlayer({puppet: otherPlayer.puppet, x: otherPlayer.x, y: otherPlayer.y, ctx: canvasCtx, volumes: otherPlayer.volumes || [0,0,0,0,0], speaking: otherPlayer.speaking, size: otherPlayer.size, pattern: 'pink'})
+            drawPlayer({puppet: otherPlayer.puppet, x: otherPlayer.x, y: otherPlayer.y, ctx: canvasCtx, volumes: otherPlayer.volumes || [0,0,0,0,0], speaking: otherPlayer.speaking, size: otherPlayer.size, pattern: otherPlayer.bodyColor, skin: otherPlayer.skinColor})
           }
         });
       }
@@ -275,6 +277,13 @@ window.onload = () => {
     "backgrounds"
   );
 
+  const selectBody = document.getElementById(
+    "body"
+  );
+
+  const selectSkin = document.getElementById(
+    "skin"
+  );
   const backgroundImage = document.getElementById('background')
 
   const canvas = document.getElementById('canvas-1')
@@ -286,7 +295,16 @@ window.onload = () => {
 
   // Grab buttons and assign functions onClick
   selectBackground.addEventListener('change', () => {
-    canvas.style = selectBackground.value === 'green' ? 'background: green' : `background-image: url("${selectBackground.value}")`;
+    BACKCOLOR = `background-image: url("${selectBackground.value}")`;
+    canvas.style = BACKCOLOR;
+  });
+
+  selectBody.addEventListener('change', () => {
+    bodyColor = selectBody.value
+  });
+
+  selectSkin.addEventListener('change', () => {
+    skinColor = selectSkin.value
   });
 
   backgroundImage.addEventListener('change', () => {
