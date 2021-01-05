@@ -1,14 +1,19 @@
 import { io } from 'socket.io-client';
 
-import {john} from "./characters";
+import {drawPlayer, john, paul} from "./characters";
+
+import CanvasRecorder  from "./utils/Recorder"
 
 const HEIGHT = window.innerHeight;
 const WIDTH = window.innerWidth;
-let BACKCOLOR = 'pink'; //'rgb(100, 200, 200)'
+let BACKCOLOR = 'green'; //'rgb(100, 200, 200)'
 let listening = false;
 let deltaX = WIDTH/2;
 let deltaY = HEIGHT/2;
-let size = 100
+let size = 100;
+let speaking = false;
+let bodyColor = 'black';
+let skinColor = 'orange';
 const speed = WIDTH/60
 window.addEventListener("keydown", keysPressed, false);
 window.addEventListener("keyup", keysReleased, false);
@@ -49,7 +54,11 @@ function keysPressed(e) {
     size += speed;
   }
 
-  if (keys[37] || keys[38] || keys[39] || keys[40])
+  if (keys[83]) {
+    speaking = !speaking;
+  }
+
+  if (keys[37] || keys[38] || keys[39] || keys[40] || keys[83])
   e.preventDefault();
 }
 
@@ -68,34 +77,55 @@ const average = (dataArray = []) => {
 
 // start everything
 function startAudioVisual() {
-
   const canvas = document.querySelector('#canvas-1');
   canvas.height = HEIGHT;
   canvas.width = WIDTH;
 
+  let store = {
+    puppet: 'john'
+  }
+
+  // load connected characters
+  const socket = io();
+  socket.on("currentPlayers", (players) => {
+    store.players = {...players};
+    console.log('connected', store.players)
+  });
+
+  socket.on("newPlayer", (playerInfo) => {
+    store.players[playerInfo.playerId] = playerInfo;
+    console.log('new user joined: ' + playerInfo.playerId)
+  });
+
+  socket.on("kill", (playerId) => {
+    delete store.players[playerId]
+    console.log(playerId + ' left')
+  });
+
+  socket.on('playerMoved',  (playerInfo) => {
+    store.players[playerInfo.playerId] = playerInfo
+  });
+
+
   const soundAllowed = function(stream) {
-    let store = {}
+    const recordButton = document.getElementsByClassName(
+      "controller__button-record"
+    )[0];
+    const recorder = new CanvasRecorder(canvas, stream);
 
-    // load connected characters
-    const socket = io();
-    socket.on("currentPlayers", (players) => {
-      store.players = {...players};
-      console.log('connected', store.players)
+    recordButton.addEventListener("click", () =>
+      handleRecording(recordButton, recorder)
+    );
+
+    const selectPuppet = document.getElementById(
+      "puppets"
+    );
+
+    selectPuppet.addEventListener('change', () => {
+      store.puppet = selectPuppet.value;
+      console.log('puppet', store.puppet, store)
     });
 
-    socket.on("newPlayer", (playerInfo) => {
-      store.players[playerInfo.playerId] = playerInfo;
-      console.log('new user joined: ' + playerInfo.playerId)
-    });
-
-    socket.on("kill", (playerId) => {
-      delete store.players[playerId]
-      console.log(playerId + ' left')
-    });
-
-    socket.on('playerMoved',  (playerInfo) => {
-      store.players[playerInfo.playerId] = playerInfo
-    });
 
     window.persistAudioStream = stream;
     const audioContent = new AudioContext();
@@ -110,9 +140,7 @@ function startAudioVisual() {
     const tenorFreq = unitArray.filter((freq, index) => index < unitArray.length/3)
     const altoFreq = unitArray.filter((freq, index) => index < unitArray.length/2)
     const sopranoFreq = unitArray.filter((freq, index) => index < unitArray.length)
-
     const canvasCtx = canvas.getContext("2d");
-    const pattern = BACKCOLOR;
 
     const draw = function(state) {
 
@@ -132,11 +160,12 @@ function startAudioVisual() {
         ...store,
         volumes: [average(lowBassFreq),average(bassFreq),average(tenorFreq),average(altoFreq),average(sopranoFreq)],
         size: size > 0 ? size : 10,
+        background: BACKCOLOR
       }
 
 
       canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-      // canvasCtx.fillStyle = pattern;
+      // canvasCtx.fillStyle = BACKCOLOR;
       // canvasCtx.fillRect(0,0, WIDTH, HEIGHT);
       canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
       // oscillator({ctx: canvasCtx, canvas, dataArray})
@@ -144,16 +173,20 @@ function startAudioVisual() {
       if (!!store.players && Object.keys(store.players).length >= 1) {
         Object.keys(store.players).forEach((id) => {
           if (store.players[id].playerId === socket.id) {
-            john({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, pattern})
-
+            drawPlayer({puppet: store.puppet, x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, speaking, pattern: bodyColor, skin: skinColor})
             socket.emit("playerMovement", {
               x: deltaX,
               y: deltaY,
               volumes: store.volumes,
               size: store.size,
+              speaking: speaking,
+              puppet: store.puppet,
+              bodyColor: bodyColor,
+              skinColor: skinColor
             });
           } else {
-            john({x: store.players[id].x, y: store.players[id].y, ctx: canvasCtx, volumes: store.players[id].volumes || [0,0,0,0,0], size: store.players[id].size, pattern: 'yellow'})
+            let otherPlayer = store.players[id]
+            drawPlayer({puppet: otherPlayer.puppet, x: otherPlayer.x, y: otherPlayer.y, ctx: canvasCtx, volumes: otherPlayer.volumes || [0,0,0,0,0], speaking: otherPlayer.speaking, size: otherPlayer.size, pattern: otherPlayer.bodyColor, skin: otherPlayer.skinColor})
           }
         });
       }
@@ -204,6 +237,34 @@ const handleMicrophone = (button) => {
   }
 };
 
+const handleRecording = (button, recorder) => {
+  if (button.classList.contains("controller__button-download")) {
+    recorder.save("canvas-recording");
+    button.classList.remove("controller__button-download");
+    button.classList.add("controller__button-record");
+    button.innerHTML = "<i class='fa fa-circle'></i> Record";
+    button.style.color = "#cccccc";
+    return;
+  }
+
+  if (button.classList.contains("controller__button-stop")) {
+    recorder.stop();
+    listening = false;
+    button.classList.toggle("blink");
+    button.classList.remove("controller__button-stop");
+    button.classList.add("controller__button-download");
+    button.innerHTML = "<i class='fa fa-download'></i> Download";
+  }
+
+  if (button.classList.contains("controller__button-record")) {
+    recorder.start();
+    button.classList.toggle("blink");
+    button.classList.remove("controller__button-record");
+    button.classList.add("controller__button-stop");
+    button.innerHTML = "<i class='fa fa-stop-circle'></i> Stop Record";
+    button.style.color = "Red";
+  }
+};
 
 
 // Start
@@ -211,22 +272,41 @@ window.onload = () => {
   const startButton = document.getElementsByClassName(
     "controller__button-start"
   )[0];
+
+  const selectBackground = document.getElementById(
+    "backgrounds"
+  );
+
+  const selectBody = document.getElementById(
+    "body"
+  );
+
+  const selectSkin = document.getElementById(
+    "skin"
+  );
+  const backgroundImage = document.getElementById('background')
+
+  const canvas = document.getElementById('canvas-1')
+
   // Grab buttons and assign functions onClick
   startButton.addEventListener("click", () => {
     handleMicrophone(startButton);
   });
 
-  const selectBackground = document.getElementById(
-    "backgrounds"
-  );
   // Grab buttons and assign functions onClick
   selectBackground.addEventListener('change', () => {
-
-    canvas.style = selectBackground.value === 'green' ? 'background: green' : `background-image: url("${selectBackground.value}")`;
+    BACKCOLOR = `background-image: url("${selectBackground.value}")`;
+    canvas.style = BACKCOLOR;
   });
 
-  const canvas = document.getElementById('canvas-1')
-  const backgroundImage = document.getElementById('background')
+  selectBody.addEventListener('change', () => {
+    bodyColor = selectBody.value
+  });
+
+  selectSkin.addEventListener('change', () => {
+    skinColor = selectSkin.value
+  });
+
   backgroundImage.addEventListener('change', () => {
   // get the value and set the background of the canvas somehow, css or js, as you wish darling.
     canvas.style = `background-image: url("${backgroundImage.value}")`;
