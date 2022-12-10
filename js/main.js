@@ -1,18 +1,20 @@
-import { io } from 'socket.io-client';
-
-import {john} from "./characters";
+import { io } from "socket.io-client";
+import osc from "osc";
+import { john } from "./characters";
+import { drawShape } from "./shapes";
 
 const HEIGHT = window.innerHeight;
 const WIDTH = window.innerWidth;
-let BACKCOLOR = 'pink'; //'rgb(100, 200, 200)'
+let BACKCOLOR = "pink"; //'rgb(100, 200, 200)'
 let listening = false;
-let deltaX = WIDTH/2;
-let deltaY = HEIGHT/2;
-let size = 100
-const speed = WIDTH/60
+let deltaX = WIDTH / 2;
+let deltaY = HEIGHT / 2;
+let size = 100;
+const speed = WIDTH / 60;
 window.addEventListener("keydown", keysPressed, false);
 window.addEventListener("keyup", keysReleased, false);
 
+window.state = {};
 let keys = [];
 
 function keysPressed(e) {
@@ -49,8 +51,7 @@ function keysPressed(e) {
     size += speed;
   }
 
-  if (keys[37] || keys[38] || keys[39] || keys[40])
-  e.preventDefault();
+  if (keys[37] || keys[38] || keys[39] || keys[40]) e.preventDefault();
 }
 
 function keysReleased(e) {
@@ -59,42 +60,73 @@ function keysReleased(e) {
 }
 
 // utilities
-const normalize = (val, max, min) =>  { return (val - min) / (max - min); }
+const normalize = (val, max, min) => {
+  return (val - min) / (max - min);
+};
 const average = (dataArray = []) => {
-  const avg =  dataArray.reduce((total, value) => total + value)/dataArray.length
-  return  normalize(avg,255,0)
-}
-
+  const avg =
+    dataArray.reduce((total, value) => total + value) / dataArray.length;
+  return normalize(avg, 255, 0);
+};
 
 // start everything
 function startAudioVisual() {
-
-  const canvas = document.querySelector('#canvas-1');
+  const canvas = document.querySelector("#canvas-1");
+  const ctx = canvas.getContext("2d");
   canvas.height = HEIGHT;
   canvas.width = WIDTH;
 
-  const soundAllowed = function(stream) {
-    let store = {}
+  const soundAllowed = function (stream) {
+    let store = Object.create({ sounds: {}, players: {} });
 
     // load connected characters
     const socket = io();
     socket.on("currentPlayers", (players) => {
-      store.players = {...players};
-      console.log('connected', store.players)
+      store.players = { ...players };
+      console.log("connected", store.players);
+    });
+
+    socket.on("sounds", ({ sound, volume }) => {
+      const oldSound = store.sounds[sound];
+      const newSound = { size: WIDTH / volume, x: 10, y: 0 };
+      if (oldSound) {
+        const posX =
+          oldSound.x + WIDTH / volume < WIDTH ? oldSound.x + WIDTH / volume : 0;
+        newSound.x = posX;
+      }
+
+      switch (sound) {
+        case "organ":
+          newSound.y = HEIGHT / 4;
+          break;
+        case "snare":
+          newSound.y = (HEIGHT / 4) * 2;
+          break;
+        case "kick":
+          newSound.y = (HEIGHT / 4) * 3;
+          break;
+        default:
+          newSound.y = 0;
+          break;
+      }
+
+      store.sounds[sound] = newSound;
+      console.log(store, oldSound, newSound);
+      drawShape({ ctx: ctx, ...newSound });
     });
 
     socket.on("newPlayer", (playerInfo) => {
       store.players[playerInfo.playerId] = playerInfo;
-      console.log('new user joined: ' + playerInfo.playerId)
+      console.log("new user joined: " + playerInfo.playerId);
     });
 
     socket.on("kill", (playerId) => {
-      delete store.players[playerId]
-      console.log(playerId + ' left')
+      delete store.players[playerId];
+      console.log(playerId + " left");
     });
 
-    socket.on('playerMoved',  (playerInfo) => {
-      store.players[playerInfo.playerId] = playerInfo
+    socket.on("playerMoved", (playerInfo) => {
+      store.players[playerInfo.playerId] = playerInfo;
     });
 
     window.persistAudioStream = stream;
@@ -104,73 +136,96 @@ function startAudioVisual() {
     audioStream.connect(analyser);
     analyser.fftSize = 512;
 
-    const unitArray = new Uint8Array(analyser.frequencyBinCount).filter((freq, index) => index < 200);
-    const lowBassFreq = unitArray.filter((freq, index) => index < unitArray.length/5)
-    const bassFreq = unitArray.filter((freq, index) => index < unitArray.length/4)
-    const tenorFreq = unitArray.filter((freq, index) => index < unitArray.length/3)
-    const altoFreq = unitArray.filter((freq, index) => index < unitArray.length/2)
-    const sopranoFreq = unitArray.filter((freq, index) => index < unitArray.length)
+    const unitArray = new Uint8Array(analyser.frequencyBinCount).filter(
+      (freq, index) => index < 200
+    );
+    const lowBassFreq = unitArray.filter(
+      (freq, index) => index < unitArray.length / 5
+    );
+    const bassFreq = unitArray.filter(
+      (freq, index) => index < unitArray.length / 4
+    );
+    const tenorFreq = unitArray.filter(
+      (freq, index) => index < unitArray.length / 3
+    );
+    const altoFreq = unitArray.filter(
+      (freq, index) => index < unitArray.length / 2
+    );
+    const sopranoFreq = unitArray.filter(
+      (freq, index) => index < unitArray.length
+    );
 
     const canvasCtx = canvas.getContext("2d");
     const pattern = BACKCOLOR;
 
-    const draw = function(state) {
+    // const draw = function (state) {
+    //   if (!listening) {
+    //     console.log("STOP listening");
+    //     return;
+    //   }
 
-      if (!listening) {
-        console.log('STOP listening')
-        return
-      }
+    //   analyser.getByteFrequencyData(lowBassFreq);
+    //   analyser.getByteFrequencyData(bassFreq);
+    //   analyser.getByteFrequencyData(tenorFreq);
+    //   analyser.getByteFrequencyData(altoFreq);
+    //   analyser.getByteFrequencyData(sopranoFreq);
 
+    //   store = {
+    //     ...store,
+    //     volumes: [
+    //       average(lowBassFreq),
+    //       average(bassFreq),
+    //       average(tenorFreq),
+    //       average(altoFreq),
+    //       average(sopranoFreq),
+    //     ],
+    //     size: size > 0 ? size : 10,
+    //   };
 
-      analyser.getByteFrequencyData(lowBassFreq);
-      analyser.getByteFrequencyData(bassFreq);
-      analyser.getByteFrequencyData(tenorFreq);
-      analyser.getByteFrequencyData(altoFreq);
-      analyser.getByteFrequencyData(sopranoFreq);
+    //   canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+    //   // canvasCtx.fillStyle = pattern;
+    //   // canvasCtx.fillRect(0,0, WIDTH, HEIGHT);
+    //   canvasCtx.strokeStyle = "rgb(0, 0, 0)";
+    //   // oscillator({ctx: canvasCtx, canvas, dataArray})
 
-      store = {
-        ...store,
-        volumes: [average(lowBassFreq),average(bassFreq),average(tenorFreq),average(altoFreq),average(sopranoFreq)],
-        size: size > 0 ? size : 10,
-      }
+    //   if (!!store.players && Object.keys(store.players).length >= 1) {
+    //     Object.keys(store.players).forEach((id) => {
+    //       if (store.players[id].playerId === socket.id) {
+    //         john({
+    //           x: deltaX,
+    //           y: deltaY,
+    //           ctx: canvasCtx,
+    //           volumes: store.volumes,
+    //           size: store.size,
+    //           pattern,
+    //         });
 
+    //         socket.emit("playerMovement", {
+    //           x: deltaX,
+    //           y: deltaY,
+    //           volumes: store.volumes,
+    //           size: store.size,
+    //         });
+    //       } else {
+    //         john({
+    //           x: store.players[id].x,
+    //           y: store.players[id].y,
+    //           ctx: canvasCtx,
+    //           volumes: store.players[id].volumes || [0, 0, 0, 0, 0],
+    //           size: store.players[id].size,
+    //           pattern: "yellow",
+    //         });
+    //       }
+    //     });
+    //   }
 
-      canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-      // canvasCtx.fillStyle = pattern;
-      // canvasCtx.fillRect(0,0, WIDTH, HEIGHT);
-      canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-      // oscillator({ctx: canvasCtx, canvas, dataArray})
+    //   requestAnimationFrame(draw);
+    // };
 
-      if (!!store.players && Object.keys(store.players).length >= 1) {
-        Object.keys(store.players).forEach((id) => {
-          if (store.players[id].playerId === socket.id) {
-            john({x: deltaX, y: deltaY, ctx: canvasCtx, volumes: store.volumes, size: store.size, pattern})
-
-            socket.emit("playerMovement", {
-              x: deltaX,
-              y: deltaY,
-              volumes: store.volumes,
-              size: store.size,
-            });
-          } else {
-            john({x: store.players[id].x, y: store.players[id].y, ctx: canvasCtx, volumes: store.players[id].volumes || [0,0,0,0,0], size: store.players[id].size, pattern: 'yellow'})
-          }
-        });
-      }
-
-
-
-
-        requestAnimationFrame(draw);
-
-
-    }
-
-    draw(store)
+    // draw(store);
   };
 
-
-  const soundNotAllowed = function(error) {
+  const soundNotAllowed = function (error) {
     console.log(error);
   };
 
@@ -180,9 +235,7 @@ function startAudioVisual() {
 														navigator.mozGetUserMedia    ||
 														null;*/
   navigator.getUserMedia({ audio: true }, soundAllowed, soundNotAllowed);
-
 }
-
 
 const handleMicrophone = (button) => {
   if (button.classList.contains("controller__button-start")) {
@@ -204,8 +257,6 @@ const handleMicrophone = (button) => {
   }
 };
 
-
-
 // Start
 window.onload = () => {
   const startButton = document.getElementsByClassName(
@@ -216,19 +267,19 @@ window.onload = () => {
     handleMicrophone(startButton);
   });
 
-  const selectBackground = document.getElementById(
-    "backgrounds"
-  );
+  const selectBackground = document.getElementById("backgrounds");
   // Grab buttons and assign functions onClick
-  selectBackground.addEventListener('change', () => {
-
-    canvas.style = selectBackground.value === 'green' ? 'background: green' : `background-image: url("${selectBackground.value}")`;
+  selectBackground.addEventListener("change", () => {
+    canvas.style =
+      selectBackground.value === "green"
+        ? "background: green"
+        : `background-image: url("${selectBackground.value}")`;
   });
 
-  const canvas = document.getElementById('canvas-1')
-  const backgroundImage = document.getElementById('background')
-  backgroundImage.addEventListener('change', () => {
-  // get the value and set the background of the canvas somehow, css or js, as you wish darling.
+  const canvas = document.getElementById("canvas-1");
+  const backgroundImage = document.getElementById("background");
+  backgroundImage.addEventListener("change", () => {
+    // get the value and set the background of the canvas somehow, css or js, as you wish darling.
     canvas.style = `background-image: url("${backgroundImage.value}")`;
-  })
+  });
 };

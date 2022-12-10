@@ -1,54 +1,92 @@
-<!doctype html>
+<!DOCTYPE html>
 <html class="no-js" lang="">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<head>
-  <meta charset="utf-8">
-  <title></title>
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="" />
+    <meta property="og:url" content="" />
+    <meta property="og:image" content="" />
 
-  <meta property="og:title" content="">
-  <meta property="og:type" content="">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <!-- Place favicon.ico in the root directory -->
 
-  <link rel="manifest" href="site.webmanifest">
-  <link rel="apple-touch-icon" href="icon.png">
-  <!-- Place favicon.ico in the root directory -->
+    <link rel="stylesheet" href="css/normalize.css" />
+    <link rel="stylesheet" href="css/main.css" />
 
-  <link rel="stylesheet" href="css/normalize.css">
-  <link rel="stylesheet" href="css/main.css">
+    <link
+      href="https://fonts.googleapis.com/css?family=Tomorrow:800"
+      rel="stylesheet"
+    />
+    <!-- Add icon library -->
+    <script
+      src="https://kit.fontawesome.com/c06c02b965.js"
+      crossorigin="anonymous"
+    ></script>
 
-  <link
-    href="https://fonts.googleapis.com/css?family=Tomorrow:800"
-    rel="stylesheet"
-  />
-  <!-- Add icon library -->
-  <script
-    src="https://kit.fontawesome.com/c06c02b965.js"
-    crossorigin="anonymous"
-  ></script>
+    <meta name="theme-color" content="#fafafa" />
+  </head>
 
-  <meta name="theme-color" content="#fafafa">
-</head>
+  <body>
+    <div>
+      <a class="controller__button controller__button-start"
+        >Start <i class="fa fa-play"></i
+      ></a>
+      <input type="text" id="background" name="name" placeholder="paste url" />
+      <select name="presets" id="backgrounds">
+        <option value="green">Green</option>
+        <option
+          value="https://eatsleepworkrepeat.com/wp-content/uploads/2020/06/office.jpg"
+        >
+          Office
+        </option>
+        <option
+          value="https://live.staticflickr.com/4137/4851105949_a2daf2e774_b.jpg"
+        >
+          Park
+        </option>
+        <option
+          value="https://www.mydomaine.com/thmb/KWYFPjZMCuhABZNIM5F-o-eiwlM=/735x0/cdn.cliqueinc.com__cache__posts__212361__-2030968-1483470364.700x0c-8571e60cad7b42a981ab29ae10b5c153-1c3248487c784cd2994c5a3ba02f7115.jpg"
+        >
+          Home
+        </option>
+      </select>
+      <div class="container">
+        <canvas id="canvas-1"></canvas>
 
-<body>
-<div>
-  <a class="controller__button controller__button-start">Start <i class="fa fa-play"></i></a>
-  <input type="text" id="background"  name="name"
-         placeholder="paste url">
-  <select name="presets" id="backgrounds">
-    <option value="green">Green</option>
-    <option value="https://eatsleepworkrepeat.com/wp-content/uploads/2020/06/office.jpg">Office</option>
-    <option value="https://live.staticflickr.com/4137/4851105949_a2daf2e774_b.jpg">Park</option>
-    <option value="https://www.mydomaine.com/thmb/KWYFPjZMCuhABZNIM5F-o-eiwlM=/735x0/cdn.cliqueinc.com__cache__posts__212361__-2030968-1483470364.700x0c-8571e60cad7b42a981ab29ae10b5c153-1c3248487c784cd2994c5a3ba02f7115.jpg">Home</option>
-  </select>
-  <canvas id="canvas-1"></canvas>
-</div>
-  <script src="js/vendor/modernizr-3.11.2.min.js"></script>
-  <script src="js/plugins.js"></script>
-  <script src="js/main.js"></script>
-
-</body>
-
+        <video
+          id="snare"
+          controls
+          autoplay
+          loop
+          muted
+          class="video video1"
+          src="./assets/tobDance.mp4"
+        ></video>
+        <video
+          id="video"
+          controls
+          autoplay
+          loop
+          muted
+          class="video video2"
+          src="https://upload.wikimedia.org/wikipedia/commons/f/f1/Pferd_und_Reiter_Springen_uber_ein_Hindernis.webm"
+        ></video>
+        <video
+          id="kick"
+          controls
+          autoplay
+          class="video video3"
+          src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c4/Physicsworks.ogv/Physicsworks.ogv.240p.vp9.webm"
+        ></video>
+      </div>
+    </div>
+    <script src="js/vendor/modernizr-3.11.2.min.js"></script>
+    <script src="js/plugins.js"></script>
+    <script src="js/main.js"></script>
+  </body>
 </html>

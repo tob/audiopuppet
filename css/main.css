@@ -65,6 +65,33 @@ video {
   vertical-align: middle;
 }
 
+#canvas-1 {
+  position: absolute;
+  z-index: 1;
+}
+
+.video {
+  width: 500px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  
+}
+
+.video2 {
+  left: 50%
+}
+
+.video3 {
+  top: 50%
+}
+
+.container {
+  position: relative;
+}
+
+
 canvas {
   width: 100%;
   height:  100vh;
