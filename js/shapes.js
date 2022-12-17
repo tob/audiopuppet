@@ -1,26 +1,28 @@
 export function drawShape({ ctx, shape, size, x, y }) {
-  const video = document.querySelector("#snare");
-
+  const video = document.querySelector(`#${shape}`);
   ctx.beginPath();
-  ctx.lineWidth = "6";
-  ctx.strokeStyle = "black";
   ctx.rect(x, y, size, window.innerHeight / 4);
-
-  // ctx.drawImage(video, x, y, size, window.innerHeight / 4);
-  var offsetX = 0.5; // center x
-  var offsetY = 0.5; // center y
-  drawImageProp(
-    ctx,
-    video,
-    x,
-    y,
+  const { offsetX, offsetY, width, height } = cover(
     size,
     window.innerHeight / 4,
-    offsetX,
-    offsetY
+    video.clientWidth,
+    video.clientHeight
   );
 
-  ctx.stroke();
+  console.log({ offsetX, offsetY, width, height, realHeight: window.innerHeight / 4 })
+  //   var offsetX = 1; // center x
+  //   var offsetY = 0.5; // center y
+  //   drawImageProp(
+  //     ctx,
+  //     video,
+  //     x,
+  //     y,
+  //     size,
+  //     window.innerHeight / 4
+  //     //   offsetX,
+  //     //   offsetY
+  //   );
+  ctx.drawImage(video, x, y, width, height);
 }
 
 function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
@@ -40,8 +42,8 @@ function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
   if (offsetX > 1) offsetX = 1;
   if (offsetY > 1) offsetY = 1;
 
-  var iw = 500,
-    ih = 895,
+  var iw = img.clientWidth,
+    ih = img.clientHeight,
     r = Math.min(w / iw, h / ih),
     nw = iw * r, // new prop. width
     nh = ih * r, // new prop. height
@@ -71,6 +73,38 @@ function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
   if (ch > ih) ch = ih;
 
   // fill image in dest. rectangle
-  console.log({img, cx, cy, cw, ch, x, y, w, h})
   ctx.drawImage(img, cx, cy, cw, ch, x, y, w, h);
 }
+
+function fit(contains) {
+  return (
+    parentWidth,
+    parentHeight,
+    childWidth,
+    childHeight,
+    scale = 1,
+    offsetX = 0.5,
+    offsetY = 0.5
+  ) => {
+    const childRatio = childWidth / childHeight;
+    const parentRatio = parentWidth / parentHeight;
+    let width = parentWidth * scale;
+    let height = parentHeight * scale;
+
+    if (contains ? childRatio > parentRatio : childRatio < parentRatio) {
+      height = width / childRatio;
+    } else {
+      width = height * childRatio;
+    }
+
+    return {
+      width,
+      height,
+      offsetX: (parentWidth - width) * offsetX,
+      offsetY: (parentHeight - height) * offsetY,
+    };
+  };
+}
+
+export const contain = fit(true);
+export const cover = fit(false);

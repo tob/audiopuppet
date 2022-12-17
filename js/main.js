@@ -88,7 +88,7 @@ function startAudioVisual() {
 
     socket.on("sounds", ({ sound, volume }) => {
       const oldSound = store.sounds[sound];
-      const newSound = { size: WIDTH / volume, x: 10, y: 0 };
+      const newSound = { size: WIDTH / volume, x: 0, y: 0, shape: sound };
       if (oldSound) {
         const posX =
           oldSound.x + WIDTH / volume < WIDTH ? oldSound.x + WIDTH / volume : 0;
@@ -96,13 +96,16 @@ function startAudioVisual() {
       }
 
       switch (sound) {
+        case "charlie":
+          newSound.y = 0;
+          break;
         case "organ":
           newSound.y = HEIGHT / 4;
           break;
-        case "snare":
+        case "kick":
           newSound.y = (HEIGHT / 4) * 2;
           break;
-        case "kick":
+        case "snare":
           newSound.y = (HEIGHT / 4) * 3;
           break;
         default:
@@ -111,7 +114,6 @@ function startAudioVisual() {
       }
 
       store.sounds[sound] = newSound;
-      console.log(store, oldSound, newSound);
       drawShape({ ctx: ctx, ...newSound });
     });
 
